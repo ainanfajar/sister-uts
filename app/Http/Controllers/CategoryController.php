@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class CategoryController extends Controller
 {
@@ -15,8 +17,9 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::all();
-        // return $categories;
-        return view('category/index', compact('categories'));
+        return view('category/index', ['categories' => $categories]);
+        $response = Http::get('http://localhost:3000/api/kategori/' . $categories->id,);
+        $jsonDatas = $response->json();
     }
 
     /**
@@ -26,7 +29,8 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        //
+        $categories = Category::all();
+        return view('category/create', compact('categories'));
     }
 
     /**
@@ -37,7 +41,25 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        DB::beginTransaction();
+        try {
+
+            $categories = new Category;
+            $categories->nama = $request->nama;
+            $categories->save();
+
+            //create category di api
+            $response = Http::post('http://localhost:3030/api/kategori/', [
+                'kategoriID' => $categories->id,
+                'nama' => $request->nama,
+            ]);
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return redirect('categories')->with('error', 'Terjadi Kesalahan');
+        };
+        return redirect('categories')->with('status', 'Kategori berhasil dibuat!');
     }
 
     /**
@@ -48,7 +70,8 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        //
+        // $category->makeHidden(['kategori_id']);
+        return view('category/show', compact('category'));
     }
 
     /**
@@ -59,7 +82,7 @@ class CategoryController extends Controller
      */
     public function edit(Category $category)
     {
-        //
+        return view('category.edit', compact('category'));
     }
 
     /**
@@ -69,9 +92,39 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Category $category)
+    public function update(Request $request, $id)
     {
-        //
+        DB::beginTransaction();
+        try {
+
+            $categories = Category::whereId($id)->first();
+            $categories->update([
+                'nama' => $request->nama,
+            ]);
+
+
+            // $categories = new Category;
+            // $categories->nama = $request->nama;
+            // $categories->save();
+
+            // $artikels = new Artikel;
+            // $artikels->kategori_id = $categories->id;
+            // $artikels->judul = $request->judul;
+            // $artikels->isi = $request->isi;
+            // $artikels->save();
+
+            DB::commit();
+            //update category tabel di api
+            $response = Http::patch('http://localhost:3030/api/kategori/' . $categories->id, [
+                'kategoriID' => $categories->id,
+                'nama' => $request->nama,
+            ]);
+        } catch (\Throwable $th) {
+            dd($th);
+            DB::rollBack();
+            return redirect('categories')->with('error', 'Terjadi Kesalahan');
+        };
+        return redirect('categories')->with('status', 'Kategori berhasil diedit!');
     }
 
     /**
@@ -80,8 +133,12 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Category $category)
+    public function destroy($id)
     {
-        //
+        $category = Category::whereId($id)->first();
+        $response = Http::delete('http://localhost:3030/api/kategori/' . $category->id);
+        $category->delete();
+
+        return redirect('categories')->with('status', 'Kategori berhasil dihapus!');
     }
 }

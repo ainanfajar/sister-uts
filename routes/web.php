@@ -2,7 +2,8 @@
 
 use App\Http\Controllers\ArtikelController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\CommentController;
+// use App\Http\Controllers\KategoriController;
 use Illuminate\Support\Facades\Route;
 
 /*

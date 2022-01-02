@@ -20,6 +20,9 @@
             <div class="col-sm-12 text-center">
             <a href="/artikels"> <h3>Artikel</h3> </a>       
             </div>
+            <div class="col-sm-12 text-center">
+                <a href="/categories"> <h3>Kategori</h3> </a>       
+            </div>
         </div>
     </div>
 

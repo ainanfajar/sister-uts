@@ -13,7 +13,14 @@
                 </div>
                 <div class="form-group">
                     <label>Kategori</label>
-                    <input type="text" class="form-control" name="nama" value="">
+                    {{-- <input type="text" class="form-control" name="nama" value=""> --}}
+                    <div>
+                        <select name="nama" class="form-control">
+                            @foreach ($categories as $item)
+                                <option value="{{$item->id}}">{{$item->nama}}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Isi Artikel</label>

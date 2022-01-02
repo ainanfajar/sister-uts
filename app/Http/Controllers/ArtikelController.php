@@ -18,7 +18,11 @@ class ArtikelController extends Controller
     public function index()
     {
         $artikels = Artikel::with('category')->get();
-        return view('artikel/index', ['artikels' => $artikels]);
+        $categories = Category::all();
+        return view('artikel/index', [
+            'artikels' => $artikels,
+            'categories' => $categories
+        ]);
     }
 
     /**
@@ -29,7 +33,7 @@ class ArtikelController extends Controller
     public function create()
     {
         $categories = Category::all();
-        return view('artikel/create', compact('categories'));
+        return view('artikel/create', ['categories' => $categories]);
     }
 
     /**
@@ -43,18 +47,26 @@ class ArtikelController extends Controller
         DB::beginTransaction();
         try {
 
-            $categories = new Category;
-            $categories->nama = $request->nama;
-            $categories->save();
+            // $categories = new Category;
+            // $categories->nama = $request->nama;
+            // $categories->save();
 
-            $artikels = new Artikel;
-            $artikels->kategori_id = $categories->id;
-            $artikels->judul = $request->judul;
-            $artikels->isi = $request->isi;
+            // $artikels = new Artikel;
+            // $artikels->kategori_id = $request->category;
+            // $artikels->judul = $request->judul;
+            // $artikels->isi = $request->isi;
+            // $artikels->save();
+            // dd($request->nama);
+            $artikels = Artikel::create([
+                'kategori_id' => $request->nama,
+                'judul' => $request->judul,
+                'isi' => $request->isi,
+            ]);
             $artikels->save();
 
             DB::commit();
         } catch (\Throwable $th) {
+            dd($th);
             DB::rollBack();
             return redirect('artikels')->with('error', 'Terjadi Kesalahan');
         };
@@ -79,9 +91,11 @@ class ArtikelController extends Controller
      * @param  \App\Models\Artikel  $artikel
      * @return \Illuminate\Http\Response
      */
-    public function edit(Artikel $artikel)
+    public function edit($id)
     {
+        $artikel = Artikel::find($id);
         $categories = Category::all();
+
         return view('artikel.edit', compact('artikel', 'categories'));
     }
 
@@ -92,30 +106,34 @@ class ArtikelController extends Controller
      * @param  \App\Models\Artikel  $artikel
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Artikel $artikel)
+    public function update(Request $request, $id)
     {
         DB::beginTransaction();
         try {
 
-            Artikel::where('id', $artikel->id)
-                ->update([
-                    'judul' => $request->judul,
-                    'isi' => $request->isi,
-                    'nama' => $request->nama,
-                ]);
+            // $artikels = Artikel::find($request->id);
+
+            // dd($artikels);
+            $artikels = Artikel::whereId($id)->first();
+            $artikels->update([
+                'judul' => $request->judul,
+                'kategori_id' => $request->nama,
+                'isi' => $request->isi,
+            ]);
 
             // $categories = new Category;
-            // $categories->nama = $request->nama;
+            // $categories->id = $request->nama;
             // $categories->save();
 
             // $artikels = new Artikel;
-            // $artikels->kategori_id = $categories->id;
             // $artikels->judul = $request->judul;
+            // $artikels->kategori_id = $request->nama;
             // $artikels->isi = $request->isi;
             // $artikels->save();
 
             DB::commit();
         } catch (\Throwable $th) {
+            // dd($th);
             DB::rollBack();
             return redirect('artikels')->with('error', 'Terjadi Kesalahan');
         };
